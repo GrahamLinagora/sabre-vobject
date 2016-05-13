@@ -161,4 +161,36 @@ ICS;
 
     }
 
+    function testRequestNewWithAlarm() {
+
+        $itip = <<<ICS
+BEGIN:VCALENDAR
+VERSION:2.0
+METHOD:REQUEST
+BEGIN:VEVENT
+SEQUENCE:1
+UID:foobar
+BEGIN:VALARM
+TRIGGER:-PT30M
+REPEAT:2
+DURATION:PT15M
+ACTION:DISPLAY
+END:VALARM
+END:VEVENT
+END:VCALENDAR
+ICS;
+
+        $expected = <<<ICS
+BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SEQUENCE:1
+UID:foobar
+END:VEVENT
+END:VCALENDAR
+ICS;
+
+        $result = $this->process($itip, null, $expected);
+    }
+
 }

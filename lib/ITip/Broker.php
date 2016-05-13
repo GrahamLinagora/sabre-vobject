@@ -2,6 +2,7 @@
 
 namespace Sabre\VObject\ITip;
 
+use Sabre\VObject\Component;
 use Sabre\VObject\Component\VCalendar;
 use Sabre\VObject\DateTimeParser;
 use Sabre\VObject\Reader;
@@ -264,6 +265,16 @@ class Broker {
 
     }
 
+    private function stripVAlarms(Component $component) {
+        foreach ($component->getComponents() as $childComponent) {
+            var_dump($childComponent->name);
+            if (strcmp ($childComponent->name, 'VALARM') === 0) {
+                $component->remove($childComponent);
+            }
+        }
+        return $component;
+    }
+
     /**
      * Processes incoming REQUEST messages.
      *
@@ -283,7 +294,8 @@ class Broker {
             // all the components from the invite.
             $existingObject = new VCalendar();
             foreach ($itipMessage->message->getComponents() as $component) {
-                $existingObject->add(clone $component);
+                $newComp = clone $component;
+                $existingObject->add($this->stripVAlarms($newComp));
             }
         } else {
             // We need to update an existing object with all the new
@@ -293,7 +305,8 @@ class Broker {
                 $existingObject->remove($component);
             }
             foreach ($itipMessage->message->getComponents() as $component) {
-                $existingObject->add(clone $component);
+                $newComp = clone $component;
+                $existingObject->add($this->stripVAlarms($newComp));
             }
         }
         return $existingObject;
@@ -447,6 +460,12 @@ class Broker {
             $existingObject->add($newObject);
 
         }
+        if (strcmp($itipMessage->sender, $itipMessage->recipient) === 0) {
+            foreach ($existingObject->getComponents() as $component) {
+                $this->stripVAlarms($component);
+            }
+        }
+
         return $existingObject;
 
     }
